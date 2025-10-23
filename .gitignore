@@ -1,0 +1,24 @@
+# This project
+
+local/
+test/
+download/
+
+# IDE based
+
+.idea/
+.vscode/
+.mypy_cache/
+
+# lang based
+
+*.py[coid]
+**/__pycache__/
+.venv/
+venv/
+node_modules/
+
+*.css.map
+
+# others
+*.exe

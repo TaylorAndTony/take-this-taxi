@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Taxi</title>
+    <link rel="stylesheet" href="./style.css">
+    <script src="https://unpkg.com/sober@1.1.8/dist/sober.min.js"></script>
+</head>
+
+<body>
+    <s-page theme="auto" id="page" style="background-color: transparent;">
+
+        <div id="bg">
+            <div id="bg-main"></div>
+            <div id="bg-cover"></div>
+        </div>
+
+        <div id="wrapper">
+            <div class="center" style="margin-top: 100px;">
+                <s-search placeholder="搜索牌号后 4 位" id="search">
+                    <s-icon name="search" slot="start"></s-icon>
+                </s-search>
+            </div>
+
+            <div class="center">
+                <div class="vspace">
+                    <span>当前加载了</span>
+                    <span id="record-count">?</span>
+                    <span>条记录</span>
+                </div>
+            </div>
+
+            <!-- message alert for no data -->
+             <div class="center" style="display: none; margin-bottom: 2rex;" id="alert-no-data">
+                <s-alert type="error">没有找到符合的数据</s-alert>
+             </div>
+
+             <div class="center" style="display: none; margin-bottom: 2rex;" id="alert-not-four">
+                <s-alert>请输入 4 位数字</s-alert>
+             </div>
+
+            <div id="result-display" class="center">
+                <s-table id="table">
+                    <s-thead>
+                        <s-tr>
+                            <s-th>日期</s-th>
+                            <s-th>距今</s-th>
+                            <s-th>牌号</s-th>
+                        </s-tr>
+                    </s-thead>
+                    <s-tbody id="table-body" style="background-color: rbga(0,0,0,0.5);">
+
+                    </s-tbody>
+                </s-table>
+            </div>
+
+        </div>
+    </s-page>
+
+
+    <script defer>
+        var LIST = null;
+        const recordCount = document.getElementById('record-count');
+        const search = document.getElementById('search');
+        const alertNotFour = document.getElementById('alert-not-four');
+        const alertNoData = document.getElementById('alert-no-data');
+        const tableBody = document.getElementById('table-body');
+
+        main();
+
+        function main() {
+            // oninput
+            search.addEventListener('input', function (event) {
+                console.log(event.target.value);
+                if (event.target.value.length < 3) {
+                    alertNoData.style.display = 'none';
+                    alertNotFour.style.display = 'block';
+                    tableBody.innerHTML = '';
+                    return;
+                }
+                alertNotFour.style.display = 'none';
+                let result = doSearch(event.target.value);
+                displayData(result);
+            })
+
+            fetch('./data/example.json')
+                .then(response => response.json())
+                .then(data => {
+                    LIST = data.list;
+                    recordCount.textContent = LIST.length;
+                })
+                .catch(error => console.error(error));
+        }
+
+
+        function doSearch(value) {
+            if (!LIST) {
+                sober.Dialog.builder({ headline: '错误', text: '数据加载失败，请刷新页面后重试' })
+            }
+            const result = LIST.filter(item => item.no.startsWith(value));
+            console.log(result);
+            return result;
+        }
+
+        function displayData(data) {
+            if (data.length === 0) {
+                alertNoData.style.display = 'block';
+                return;
+            }
+            alertNoData.style.display = 'none';
+
+            tableBody.innerHTML = '';
+            data.forEach(item => {
+                const tr = document.createElement('s-tr');
+                const td1 = document.createElement('s-td');
+                const td2 = document.createElement('s-td');
+                const td3 = document.createElement('s-td');
+                td1.textContent = item.date;
+                td2.textContent = dateDiffToToday(item.date);
+                td3.textContent = item.no;
+                td1.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                td2.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                td3.style.backgroundColor = 'rgba(0,0,0,0.5)';
+                tr.appendChild(td1);
+                tr.appendChild(td2);
+                tr.appendChild(td3);
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function dateDiffToToday(dateStr) {
+            // return how many days is dateStr away from today.
+            // dateStr is always <= today
+            const today = new Date();
+            const date = new Date(dateStr);
+            const diffTime = Math.abs(date - today);
+            const days = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+            if (days === 0) {
+                return '今天';
+            } else if (days === 1) {
+                return '昨天';
+            } else {
+                return days + ' 天前';
+            }
+        }
+    </script>
+
+</body>
+
+
+
+</html>
