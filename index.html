@@ -33,13 +33,13 @@
             </div>
 
             <!-- message alert for no data -->
-             <div class="center" style="display: none; margin-bottom: 2rex;" id="alert-no-data">
+            <div class="center" style="display: none; margin-bottom: 2rex;" id="alert-no-data">
                 <s-alert type="error">没有找到符合的数据</s-alert>
-             </div>
+            </div>
 
-             <div class="center" style="display: none; margin-bottom: 2rex;" id="alert-not-four">
+            <div class="center" style="display: none; margin-bottom: 2rex;" id="alert-not-four">
                 <s-alert>请输入 4 位数字</s-alert>
-             </div>
+            </div>
 
             <div id="result-display" class="center">
                 <s-table id="table">
@@ -71,8 +71,19 @@
         main();
 
         function main() {
+            fetch('./data/example.json')
+                .then(response => response.json())
+                .then(data => {
+                    LIST = data.list;
+                    recordCount.textContent = LIST.length;
+                })
+                .catch(error => console.error(error));
+
             // oninput
             search.addEventListener('input', function (event) {
+                if (!LIST) {
+                    sober.Dialog.builder({ headline: '错误', text: '数据加载失败，请刷新页面后重试' })
+                }
                 console.log(event.target.value);
                 if (event.target.value.length < 3) {
                     alertNoData.style.display = 'none';
@@ -85,19 +96,13 @@
                 displayData(result);
             })
 
-            fetch('./data/example.json')
-                .then(response => response.json())
-                .then(data => {
-                    LIST = data.list;
-                    recordCount.textContent = LIST.length;
-                })
-                .catch(error => console.error(error));
         }
 
 
         function doSearch(value) {
             if (!LIST) {
                 sober.Dialog.builder({ headline: '错误', text: '数据加载失败，请刷新页面后重试' })
+                return [];
             }
             const result = LIST.filter(item => item.no.startsWith(value));
             console.log(result);
